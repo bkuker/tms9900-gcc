@@ -1,3 +1,22 @@
+# 2026 Updates
+
+The repo I forked from was missing the actual patches needed to build, and the container was based on a Centos release almost old enough to drink. Make would segfault all the time and the container would not rebuild easily because the yum repos are gone.
+
+I've updated this for the modern world. Just the build process. It is still patching ancient gcc and binutils, but it works!
+
+All credit goes to cmcureau & insomnia.
+
+## Shortcomings:
+
+srecord is missing, and I don't care.
+ea5split is missing, and I don't care.
+
+## Files
+
+The files from the forum post are in the forum directory. The lastest patches are in the files directory.
+
+Original README follows:
+
 # tms9900-gcc
 
 Dockerized GCC cross compiler built for the TI TMS9900 (TI99/4A family and others)

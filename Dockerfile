@@ -13,8 +13,6 @@ ENV PATH=$PATH:$PREFIX/bin
 RUN apk update
 RUN apk add texinfo wget unzip gcc patch make bash
 
-
-
 RUN bash 
 RUN mkdir /tmp/downloads
 WORKDIR /tmp/downloads 
