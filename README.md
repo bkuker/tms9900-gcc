@@ -6,6 +6,10 @@ I've updated this for the modern world. Just the build process. It is still patc
 
 All credit goes to cmcureau & insomnia.
 
+## TODO:
+
+Multi phase build so final image does not have a shitload of build droppings left over.
+
 ## Shortcomings:
 
 srecord is missing, and I don't care.
