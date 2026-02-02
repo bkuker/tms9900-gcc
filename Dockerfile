@@ -1,4 +1,4 @@
-FROM alpine
+FROM alpine AS build
 
 ENV BINUTILS_VERSION=binutils-2.19.1
 ENV GCC_VERSION=gcc-4.4.0
@@ -62,31 +62,47 @@ WORKDIR /tmp/build/binutils-obj
 RUN sed -i 's/@subsubsection/@subsection/g' /tmp/build/$BINUTILS_VERSION/bfd/doc/elf.texi
 RUN ../$BINUTILS_VERSION/configure --prefix=$PREFIX --target=$TARGET --disable-build-warnings
 RUN make 
-RUN make install 
+RUN make install
+RUN make install DESTDIR=/output
 
 #Build GCC
 RUN mkdir /tmp/build/gcc-obj
 WORKDIR /tmp/build/gcc-obj 
 RUN ../$GCC_VERSION/configure --prefix=$PREFIX --target=$TARGET --enable-languages=$ENABLE_LANGUAGES --disable-libmudflap --disable-libssp --disable-libgomp --disable-libstdcxx-pch --disable-threads --disable-nls --disable-libquadmath --with-gnu-as --with-gnu-ld --without-headers 
 RUN make MAKEINFO=true all-gcc all-target-libgcc 
-RUN make MAKEINFO=true install 
+RUN make MAKEINFO=true install DESTDIR=/output
 
 WORKDIR /tmp/build/gcc-obj 
 RUN make all-target-libgcc 
-RUN make install-target-libgcc 
+RUN make install-target-libgcc DESTDIR=/output
 
 #Build additional tools
 WORKDIR /tmp/build/elf2ea5
-RUN ls && make && mv elf2ea5 $PREFIX/bin/ 
+RUN ls && make && mv elf2ea5 /output/$PREFIX/bin/ 
 
 WORKDIR /tmp/build/elf2cart
-RUN ls && make && mv elf2cart $PREFIX/bin/
+RUN ls && make && mv elf2cart /output/$PREFIX/bin/
 
 #This is still missing
 #WORKDIR /tmp/build/ea5split
 #RUN ls && make && mv ea5split $PREFIX/bin/
 
+
+WORKDIR /tmp/build/binutils-obj
+
+
+
 #Clean up after ourselves
-RUN rm -rf /tmp/build /tmp/downloads /tmp/patch
+
+FROM alpine:latest
+
+ENV GCC_VERSION=gcc-4.4.0
+ENV PREFIX=/opt/tms9900/$GCC_VERSION
+ENV PATH=$PATH:$PREFIX/bin
+
+RUN apk update
+RUN apk add make
+
+COPY --from=build /output/ /
 
 WORKDIR /src
