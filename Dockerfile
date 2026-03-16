@@ -35,18 +35,18 @@ RUN mkdir /tmp/build
 WORKDIR /tmp/build
 RUN tar jxf ../downloads/$BINUTILS_VERSION.tar.bz2 
 WORKDIR /tmp/build/$BINUTILS_VERSION
-RUN patch -p1 </tmp/patch/binutils-2.19.1-tms9900-1.7.patch
+RUN patch -p1 </tmp/patch/binutils-2.19.1-tms9900-1.11.patch
 
 #Unzip and patch GCC
 WORKDIR /tmp/build
 RUN tar jxf ../downloads/$GCC_VERSION.tar.bz2
 WORKDIR /tmp/build/$GCC_VERSION
-RUN patch -p1 </tmp/patch/gcc-4.4.0-tms9900-1.19.patch
+RUN patch -p1 </tmp/patch/gcc-4.4.0-tms9900-1.32.patch
 
 #Unzip additional utils
 WORKDIR /tmp/build
-RUN tar zxf ../downloads/$MPFR_VERSION.tar.gz && mv $MPFR_VERSION /tmp/build/$GCC_VERSION/mpfr 
-RUN tar zxf ../downloads/$GMP_VERSION.tar.gz && mv $GMP_VERSION /tmp/build/$GCC_VERSION/gmp 
+#RUN tar zxf ../downloads/$MPFR_VERSION.tar.gz && mv $MPFR_VERSION /tmp/build/$GCC_VERSION/mpfr 
+#RUN tar zxf ../downloads/$GMP_VERSION.tar.gz && mv $GMP_VERSION /tmp/build/$GCC_VERSION/gmp 
 RUN mkdir elf2ea5 && tar zxf /tmp/patch/elf2ea5.tar.gz -C elf2ea5 
 RUN mkdir elf2cart && tar zxf /tmp/patch/elf2cart.tar.gz -C elf2cart 
 
@@ -65,12 +65,18 @@ RUN make
 RUN make install
 RUN make install DESTDIR=/output
 
+
 #Build GCC
+RUN apk add gmp-dev mpfr-dev
+
 RUN mkdir /tmp/build/gcc-obj
 WORKDIR /tmp/build/gcc-obj 
+
+#RUN ../$GCC_VERSION/configure --prefix $PREFIX --target=tms9900 --enable-languages=c
+
 RUN ../$GCC_VERSION/configure --prefix=$PREFIX --target=$TARGET --enable-languages=$ENABLE_LANGUAGES --disable-libmudflap --disable-libssp --disable-libgomp --disable-libstdcxx-pch --disable-threads --disable-nls --disable-libquadmath --with-gnu-as --with-gnu-ld --without-headers 
 RUN make MAKEINFO=true all-gcc all-target-libgcc 
-RUN make MAKEINFO=true install DESTDIR=/output
+RUN make MAKEINFO=true install DESTDIR=/output || true
 
 WORKDIR /tmp/build/gcc-obj 
 RUN make all-target-libgcc 
@@ -102,6 +108,8 @@ ENV PATH=$PATH:$PREFIX/bin
 
 RUN apk update
 RUN apk add make
+RUN apk add gmp-dev mpfr-dev
+RUN apk add gmp mpfr
 
 COPY --from=build /output/ /
 
